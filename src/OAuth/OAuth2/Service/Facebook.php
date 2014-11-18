@@ -121,12 +121,13 @@ class Facebook extends AbstractService
         ClientInterface $httpClient,
         TokenStorageInterface $storage,
         $scopes = array(),
-        UriInterface $baseApiUri = null
+        UriInterface $baseApiUri = null,
+        $apiVersion = ""
     ) {
-        parent::__construct($credentials, $httpClient, $storage, $scopes, $baseApiUri);
+        parent::__construct($credentials, $httpClient, $storage, $scopes, $baseApiUri, false, $apiVersion);
 
         if (null === $baseApiUri) {
-            $this->baseApiUri = new Uri('https://graph.facebook.com/v2.0/');
+            $this->baseApiUri = new Uri('https://graph.facebook.com'.$this->getApiVersionString().'/');
         }
     }
 
@@ -135,7 +136,7 @@ class Facebook extends AbstractService
      */
     public function getAuthorizationEndpoint()
     {
-        return new Uri('https://www.facebook.com/v2.0/dialog/oauth');
+        return new Uri('https://www.facebook.com'.$this->getApiVersionString().'/dialog/oauth');
     }
 
     /**
@@ -143,7 +144,7 @@ class Facebook extends AbstractService
      */
     public function getAccessTokenEndpoint()
     {
-        return new Uri('https://graph.facebook.com/v2.0/oauth/access_token');
+        return new Uri('https://graph.facebook.com'.$this->getApiVersionString().'/oauth/access_token');
     }
 
     /**
@@ -162,7 +163,7 @@ class Facebook extends AbstractService
 
         $token = new StdOAuth2Token();
         $token->setAccessToken($data['access_token']);
-
+        
         if (isset($data['expires'])) {
             $token->setLifeTime($data['expires']);
         }
@@ -186,7 +187,7 @@ class Facebook extends AbstractService
             throw new Exception("Redirect uri is mandatory for this request");
         }
         $parameters['app_id'] = $this->credentials->getConsumerId();
-        $baseUrl = self::WWW_URL . 'dialog/' . $dialogPath;
+        $baseUrl = self::WWW_URL .$this->getApiVersionString(). '/dialog/' . $dialogPath;
         $query = http_build_query($parameters);
         return new Uri($baseUrl . '?' . $query);
     }
